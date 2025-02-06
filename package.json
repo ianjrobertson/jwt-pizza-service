@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "cd src && node index.js",
-    "lint": "eslint"
+    "run": "cd src && node index.js",
+    "lint": "eslint",
+    "test": "jest"
   },
   "license": "MIT",
   "dependencies": {
@@ -17,6 +19,8 @@
   "devDependencies": {
     "@eslint/js": "^9.19.0",
     "eslint": "^9.19.0",
-    "globals": "^15.14.0"
+    "globals": "^15.14.0",
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
   }
 }
