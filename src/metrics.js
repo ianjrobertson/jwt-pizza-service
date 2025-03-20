@@ -116,7 +116,7 @@ function httpMetrics(metrics) {
           {
             asInt: requests[endpoint],
             timeUnixNano: Date.now() * 1000000,
-            attributes: [{key: 'endpoint', value: {stringValue: endpoint}}],
+            attributes: [{key: 'endpoint', value: {stringValue: endpoint}}, {key: 'source', value: {stringValue: config.metrics.source}}],
           },
         ],
         aggregationTemporality: 'AGGREGATION_TEMPORALITY_CUMULATIVE',
@@ -136,7 +136,7 @@ function systemMetrics (metrics) {
         {
           asDouble: getCpuUsagePercentage(),
           timeUnixNano: Date.now() * 1000000,
-          attributes: [{ key: "core", value: { stringValue: "all" } }],
+          attributes: [{ key: "core", value: { stringValue: "all" } }, { key: "source", value: { stringValue: config.metrics.source}}],
         },
       ],
     },
@@ -150,7 +150,7 @@ function systemMetrics (metrics) {
         {
           asDouble: getMemoryUsagePercentage(),
           timeUnixNano: Date.now() * 1000000,
-          attributes: [{ key: "type", value: { stringValue: "RAM" } }],
+          attributes: [{ key: "type", value: { stringValue: "RAM" } }, { key: "source", value: { stringValue: config.metrics.source}}],
         },
       ],
     },
@@ -167,7 +167,7 @@ function authMetrics(metrics) {
           {
             asInt: authResults[result],
             timeUnixNano: Date.now() * 1000000,
-            attributes: [{key: 'result', value: {stringValue: result}}],
+            attributes: [{key: 'result', value: {stringValue: result}}, {key: 'source', value: {stringValue: config.metrics.source}}],
           },
         ],
         aggregationTemporality: 'AGGREGATION_TEMPORALITY_CUMULATIVE',
@@ -189,7 +189,7 @@ function pizzaMetrics(metrics) {
           {
             asInt: pizzaResults[result],
             timeUnixNano: Date.now() * 1000000,
-            attributes: [{key: 'result', value: {stringValue: result}}],
+            attributes: [{key: 'result', value: {stringValue: result}}, {key: 'source', value: {stringValue: config.metrics.source}}],
           },
         ],
         aggregationTemporality: 'AGGREGATION_TEMPORALITY_CUMULATIVE',
@@ -210,7 +210,9 @@ function profitMetrics(metrics) {
         {
           asDouble: profits.total,
           timeUnixNano: Date.now() * 1000000,
-          attributes: [],
+          attributes: [
+            { key: "source", value: { "stringValue" : config.metrics.source}}
+          ],
         },
       ],
       aggregationTemporality: 'AGGREGATION_TEMPORALITY_CUMULATIVE',
@@ -229,7 +231,9 @@ function userMetrics(metrics) {
         {
           asInt: activeUsers['total'],
           timeUnixNano: Date.now() * 1000000,
-          attributes: [],
+          attributes: [
+            { key: "source", value: { "stringValue" : config.metrics.source}}
+          ],
         },
       ],
       aggregationTemporality: 'AGGREGATION_TEMPORALITY_CUMULATIVE',
@@ -251,7 +255,9 @@ function latencyMetrics(metrics) {
         {
           asInt: avgLatency,
           timeUnixNano: Date.now() * 1000000,
-          attributes: [],
+          attributes: [
+            { key: "source", value: { "stringValue" : config.metrics.source}}
+          ],
         },
       ],
     },
@@ -274,7 +280,9 @@ function pizzaLatencyMetrics(metrics) {
         {
           asInt: avgLatency,
           timeUnixNano: Date.now() * 1000000,
-          attributes: [],
+          attributes: [
+            { key: "source", value: { "stringValue" : config.metrics.source}}
+          ],
         },
       ],
     },
@@ -290,6 +298,11 @@ function sendMetric2Grafana(metrics) {
    const metric = {
     resourceMetrics: [
       {
+        resource: {
+          attributes: [
+            { key: "source", value: { "stringValue" : config.metrics.source}}
+          ]
+        },
         scopeMetrics: [
           {
             metrics: metrics
