@@ -3,6 +3,7 @@ const config = require('../config.js');
 const { Role, DB } = require('../database/database.js');
 const { authRouter } = require('./authRouter.js');
 const { asyncHandler, StatusCodeError } = require('../endpointHelper.js');
+const metrics = require('../metrics.js');
 
 const orderRouter = express.Router();
 
@@ -43,6 +44,7 @@ orderRouter.endpoints = [
 // getMenu
 orderRouter.get(
   '/menu',
+  metrics.track('get'),
   asyncHandler(async (req, res) => {
     res.send(await DB.getMenu());
   })
@@ -51,6 +53,7 @@ orderRouter.get(
 // addMenuItem
 orderRouter.put(
   '/menu',
+  metrics.track('put'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     if (!req.user.isRole(Role.Admin)) {
@@ -66,6 +69,7 @@ orderRouter.put(
 // getOrders
 orderRouter.get(
   '/',
+  metrics.track('get'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     res.json(await DB.getOrders(req.user, req.query.page));
@@ -75,10 +79,14 @@ orderRouter.get(
 // createOrder
 orderRouter.post(
   '/',
+  metrics.track('post'),
+  metrics.trackPizzaLatency(),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const orderReq = req.body;
     const order = await DB.addDinerOrder(req.user, orderReq);
+    //console.log('order', order);
+    metrics.trackProfits(order.items);
     const r = await fetch(`${config.factory.url}/api/order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', authorization: `Bearer ${config.factory.apiKey}` },
@@ -86,8 +94,10 @@ orderRouter.post(
     });
     const j = await r.json();
     if (r.ok) {
+      metrics.trackPizza("order");
       res.send({ order, reportSlowPizzaToFactoryUrl: j.reportUrl, jwt: j.jwt });
     } else {
+      metrics.trackPizza("fail");
       res.status(500).send({ message: 'Failed to fulfill order at factory', reportPizzaCreationErrorToPizzaFactoryUrl: j.reportUrl });
     }
   })

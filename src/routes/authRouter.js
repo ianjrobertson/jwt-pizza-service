@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const config = require('../config.js');
 const { asyncHandler } = require('../endpointHelper.js');
 const { DB, Role } = require('../database/database.js');
+const metrics = require('../metrics.js');
 
 const authRouter = express.Router();
 
@@ -58,14 +59,17 @@ async function setAuthUser(req, res, next) {
 // Authenticate token
 authRouter.authenticateToken = (req, res, next) => {
   if (!req.user) {
+    metrics.trackAuth('unauthorized');
     return res.status(401).send({ message: 'unauthorized' });
   }
+  metrics.trackAuth('authorized');
   next();
 };
 
 // register
 authRouter.post(
   '/',
+  metrics.track('post'),
   asyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
@@ -73,6 +77,7 @@ authRouter.post(
     }
     const user = await DB.addUser({ name, email, password, roles: [{ role: Role.Diner }] });
     const auth = await setAuth(user);
+    metrics.addActiveUser();
     res.json({ user: user, token: auth });
   })
 );
@@ -80,10 +85,12 @@ authRouter.post(
 // login
 authRouter.put(
   '/',
+  metrics.track('put'),
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const user = await DB.getUser(email, password);
     const auth = await setAuth(user);
+    metrics.addActiveUser();
     res.json({ user: user, token: auth });
   })
 );
@@ -91,9 +98,11 @@ authRouter.put(
 // logout
 authRouter.delete(
   '/',
+  metrics.track('delete'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     await clearAuth(req);
+    metrics.removeActiveUser();
     res.json({ message: 'logout successful' });
   })
 );
@@ -101,12 +110,14 @@ authRouter.delete(
 // updateUser
 authRouter.put(
   '/:userId',
+  metrics.track('put'),
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const userId = Number(req.params.userId);
     const user = req.user;
     if (user.id !== userId && !user.isRole(Role.Admin)) {
+      metrics.trackAuth('unauthorized');
       return res.status(403).json({ message: 'unauthorized' });
     }
 
@@ -118,12 +129,14 @@ authRouter.put(
 async function setAuth(user) {
   const token = jwt.sign(user, config.jwtSecret);
   await DB.loginUser(user.id, token);
+  metrics.trackAuth('authorized');
   return token;
 }
 
 async function clearAuth(req) {
   const token = readAuthToken(req);
   if (token) {
+    metrics.trackAuth('authorized');
     await DB.logoutUser(token);
   }
 }
