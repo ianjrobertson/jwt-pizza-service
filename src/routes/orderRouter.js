@@ -4,6 +4,8 @@ const { Role, DB } = require('../database/database.js');
 const { authRouter } = require('./authRouter.js');
 const { asyncHandler, StatusCodeError } = require('../endpointHelper.js');
 const metrics = require('../metrics.js');
+const Logger = require('pizza-logger');
+const logger = new Logger(config);
 
 const orderRouter = express.Router();
 
@@ -87,6 +89,7 @@ orderRouter.post(
     const order = await DB.addDinerOrder(req.user, orderReq);
     //console.log('order', order);
     metrics.trackProfits(order.items);
+    logger.factoryLogger(order);
     const r = await fetch(`${config.factory.url}/api/order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', authorization: `Bearer ${config.factory.apiKey}` },

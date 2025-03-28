@@ -268,7 +268,7 @@ function latencyMetrics(metrics) {
 }
 
 function pizzaLatencyMetrics(metrics) {
-  console.log(pizzaLatency);
+  //console.log(pizzaLatency);
   if (pizzaLatency.count === 0) return;
 
   const avgLatency = Math.round(pizzaLatency.total / pizzaLatency.count);
