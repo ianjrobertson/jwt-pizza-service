@@ -85,22 +85,37 @@ class DB {
     const connection = await this.getConnection();
     try {
       const params = [];
+      const setClause = [];
+  
+      // Hash the password if it's provided
       if (password) {
         const hashedPassword = await bcrypt.hash(password, 10);
-        params.push(`password='${hashedPassword}'`);
+        setClause.push('password=?');
+        params.push(hashedPassword);
       }
+  
+      // Add the email to the query if it's provided
       if (email) {
-        params.push(`email='${email}'`);
+        setClause.push('email=?');
+        params.push(email);
       }
-      if (params.length > 0) {
-        const query = `UPDATE user SET ${params.join(', ')} WHERE id=${userId}`;
-        await this.query(connection, query);
+  
+      // If there are any fields to update
+      if (setClause.length > 0) {
+        // Join the set clause with commas and prepare the query
+        const query = `UPDATE user SET ${setClause.join(', ')} WHERE id=?`;
+        params.push(userId); // Append userId to the parameters
+  
+        // Execute the query with parameters
+        await this.query(connection, query, params);
       }
+  
       return this.getUser(email, password);
     } finally {
       connection.end();
     }
   }
+  
 
   async loginUser(userId, token) {
     token = this.getTokenSignature(token);
@@ -363,3 +378,23 @@ class DB {
 
 const db = new DB();
 module.exports = { Role, DB: db };
+//PUT /api/auth/1 HTTP/2
+// Host: pizza-service.ianjrobertson.click
+// Content-Length: 57
+// Sec-Ch-Ua-Platform: "Windows"
+// Accept-Language: en-US,en;q=0.9
+// Sec-Ch-Ua: "Chromium";v="135", "Not-A.Brand";v="8"
+// Content-Type: application/json
+// Sec-Ch-Ua-Mobile: ?0
+// User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36
+// Accept: */*
+// Origin: https://pizza.ianjrobertson.click
+// Sec-Fetch-Site: same-site
+// Sec-Fetch-Mode: cors
+// Sec-Fetch-Dest: empty
+// Referer: https://pizza.ianjrobertson.click/
+// Accept-Encoding: gzip, deflate, br
+// Priority: u=1, i
+// Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6IuW4uOeUqOWQjeWtlyIsImVtYWlsIjoiYUBqd3QuY29tIiwicm9sZXMiOlt7InJvbGUiOiJhZG1pbiJ9XSwiaWF0IjoxNzQ0MzMxNDU2fQ.zC3GTELLSX1GW_KEylTVJPf-LahcJIubZI9Tgf75rcA
+
+// {"email":"hacker@jwt.com' AND '1' = '1","password":"123"}

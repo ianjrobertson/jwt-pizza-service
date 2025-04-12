@@ -41,17 +41,17 @@ function expectValidJwt(potentialJwt) {
   expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
 }
 
-test('updateUser', async () => {
-    const loginRes = await request(app).put('/api/auth').send(testUser);
-    expect(loginRes.status).toBe(200);
-    expectValidJwt(loginRes.body.token);
+// test('updateUser', async () => {
+//     const loginRes = await request(app).put('/api/auth').send(testUser);
+//     expect(loginRes.status).toBe(200);
+//     expectValidJwt(loginRes.body.token);
 
-    const updatedUser = {name: 'pizza diner2', email: 'reg@test.com', password: 'a' }
-    const updateRequest = await request(app).put(`/api/auth/${loginRes.body.user.id}`).send(updatedUser).set('Authorization', `Bearer ${testUserAuthToken}`)
-    expect(updateRequest.status).toBe(200)
+//     const updatedUser = {name: 'pizza diner2', email: 'reg@test.com', password: 'a' }
+//     const updateRequest = await request(app).put(`/api/auth/${loginRes.body.user.id}`).send(updatedUser).set('Authorization', `Bearer ${testUserAuthToken}`)
+//     expect(updateRequest.status).toBe(200)
 
         
-})
+// })
 
 //login an existin user again
   

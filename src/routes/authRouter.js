@@ -105,23 +105,23 @@ authRouter.delete(
 );
 
 // updateUser
-authRouter.put(
-  '/:userId',
-  metrics.track('put'),
-  authRouter.authenticateToken,
-  asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
-    const userId = Number(req.params.userId);
-    const user = req.user;
-    if (user.id !== userId && !user.isRole(Role.Admin)) {
-      metrics.trackAuth('unauthorized');
-      return res.status(403).json({ message: 'unauthorized' });
-    }
+// authRouter.put(
+//   '/:userId',
+//   metrics.track('put'),
+//   authRouter.authenticateToken,
+//   asyncHandler(async (req, res) => {
+//     const { email, password } = req.body;
+//     const userId = Number(req.params.userId);
+//     const user = req.user;
+//     if (user.id !== userId && !user.isRole(Role.Admin)) {
+//       metrics.trackAuth('unauthorized');
+//       return res.status(403).json({ message: 'unauthorized' });
+//     }
 
-    const updatedUser = await DB.updateUser(userId, email, password);
-    res.json(updatedUser);
-  })
-);
+//     const updatedUser = await DB.updateUser(userId, email, password);
+//     res.json(updatedUser);
+//   })
+// );
 
 async function setAuth(user) {
   const token = jwt.sign(user, config.jwtSecret);
